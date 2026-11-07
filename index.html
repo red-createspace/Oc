@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anime Studio ✦</title>
+<style>
+:root{
+  --bg:#11101a;
+  --panel:#211c30;
+  --panel2:#30283f;
+  --accent:#c9a3ff;
+  --text:#f8f3ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+}
+button,input,select,textarea{font:inherit}
+button{
+  background:var(--panel2);
+  color:white;
+  border:1px solid #66547f;
+  border-radius:10px;
+  padding:10px;
+  cursor:pointer;
+}
+button.active{
+  background:#71509c;
+  border-color:var(--accent);
+}
+header{
+  background:var(--panel);
+  padding:14px;
+  text-align:center;
+  font-weight:bold;
+  font-size:23px;
+  color:var(--accent);
+}
+.toolbar{
+  display:flex;
+  gap:7px;
+  padding:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.toolbar button{font-size:13px}
+.layout{
+  display:grid;
+  grid-template-columns:minmax(250px,1fr) 390px;
+  gap:12px;
+  padding:12px;
+  max-width:1200px;
+  margin:auto;
+}
+.preview{
+  background:var(--panel);
+  border-radius:16px;
+  padding:10px;
+}
+#stage{
+  height:570px;
+  border-radius:12px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  background:linear-gradient(#655083,#21192e);
+}
+#character{
+  height:95%;
+  max-width:100%;
+  touch-action:manipulation;
+}
+.character-name{
+  text-align:center;
+  margin:8px;
+}
+.editor{
+  background:var(--panel);
+  border-radius:16px;
+  overflow:hidden;
+}
+.tabs{
+  display:flex;
+  overflow-x:auto;
+  scrollbar-width:none;
+  gap:5px;
+  padding:10px;
+  background:#171321;
+  scroll-snap-type:x mandatory;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{
+  flex:0 0 auto;
+  scroll-snap-align:center;
+}
+.editor-content{
+  padding:16px;
+  min-height:350px;
+  max-height:520px;
+  overflow-y:auto;
+}
+.page{display:none}
+.page.active{display:block}
+h3{
+  color:var(--accent);
+  margin-top:5px;
+}
+.control{
+  margin:17px 0;
+}
+.control label{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:7px;
+  font-size:14px;
+}
+input[type=range]{
+  width:100%;
+  accent-color:var(--accent);
+}
+input[type=color]{
+  width:70px;
+  height:40px;
+  padding:2px;
+  border:1px solid #76618e;
+  border-radius:8px;
+  background:transparent;
+}
+input[type=text],select,textarea{
+  width:100%;
+  background:#15111f;
+  border:1px solid #66547f;
+  border-radius:8px;
+  padding:11px;
+  color:white;
+}
+textarea{
+  height:110px;
+  resize:vertical;
+}
+.colors{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.color-box{
+  background:#2c243b;
+  padding:10px;
+  border-radius:10px;
+}
+.color-box label{
+  display:block;
+  margin-bottom:7px;
+  font-size:13px;
+}
+.actions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin:12px 0;
+}
+.swatches{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.swatch{
+  width:35px;
+  height:35px;
+  padding:0;
+  border:2px solid white;
+}
+.hint{
+  color:#c8bbd7;
+  font-size:12px;
+  line-height:1.5;
+}
+.bottom-nav{
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  border-top:1px solid #51425e;
+}
+@media(max-width:760px){
+  .layout{
+    display:flex;
+    flex-direction:column;
+    padding:7px;
+    gap:7px;
+  }
+  #stage{height:43vh;min-height:290px}
+  .editor-content{
+    max-height:35vh;
+    min-height:220px;
+  }
+  .toolbar{padding:7px}
+  .toolbar button{padding:8px}
+}
+</style>
+</head>
+<body>
+
+<header>✦ ANIME STUDIO ✦</header>
+
+<div class="toolbar">
+  <button onclick="saveSlot()">Save Character</button>
+  <button onclick="newCharacter()">New</button>
+  <button onclick="exportCode()">Export</button>
+  <button onclick="importCode()">Import</button>
+</div>
+
+<div class="layout">
+
+<section class="preview">
+  <h3 class="character-name" id="displayName">New Character</h3>
+
+  <div id="stage">
+    <svg id="character" viewBox="0 0 400 650"
+         xmlns="http://www.w3.org/2000/svg">
+
+      <defs>
+        <linearGradient id="hairShade" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffffff"/>
+          <stop offset="1" stop-color="#bbbbbb"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Back hair -->
+      <g id="backHairGroup">
+        <path id="backHair"
+          d="M125 125 Q105 40 200 30
+             Q295 40 275 125
+             L295 285 Q245 310 200 300
+             Q155 310 105 285 Z"
+          fill="#ffffff" stroke="#35303d" stroke-width="3"/>
+      </g>
+
+      <!-- Body is rebuilt by JavaScript -->
+      <g id="bodyLayer"></g>
+
+      <!-- Head -->
+      <g id="headGroup">
+        <path id="faceShape"
+          fill="#f0c9b4"
+          stroke="#493b44"
+          stroke-width="3"/>
+
+        <g id="faceDetails">
+          <path d="M147 156 Q164 147 180 156"
+            stroke="#39303c" stroke-width="4" fill="none"/>
+          <path d="M220 156 Q236 147 253 156"
+            stroke="#39303c" stroke-width="4" fill="none"/>
+
+          <ellipse cx="165" cy="171" rx="12" ry="16"
+            fill="white" stroke="#38313e" stroke-width="2"/>
+          <ellipse cx="235" cy="171" rx="12" ry="16"
+            fill="white" stroke="#38313e" stroke-width="2"/>
+
+          <ellipse class="iris" cx="165" cy="172" rx="7" ry="12"
+            fill="#8b6cbd"/>
+          <ellipse class="iris" cx="235" cy="172" rx="7" ry="12"
+            fill="#8b6cbd"/>
+
+          <circle cx="167" cy="167" r="3" fill="white"/>
+          <circle cx="237" cy="167" r="3" fill="white"/>
+
+          <path d="M198 184 L194 199 Q200 202 205 199"
+            fill="none" stroke="#b98983" stroke-width="2"/>
+
+          <path d="M188 222 Q200 228 212 222"
+            fill="none" stroke="#a76d79" stroke-width="2"/>
+        </g>
+
+        <path id="frontHair"
+          d="M128 160 Q110 85 145 70
+             Q170 42 210 58
+             Q265 48 278 120
+             L267 167 L247 130
+             L225 155 L208 112
+             L185 153 L168 120
+             L140 171 Z"
+          fill="#ffffff" stroke="#35303d" stroke-width="3"/>
+      </g>
+
+    </svg>
+  </div>
+
+  <p class="hint">
+    Tap a coloured part of the character to select its colour.
+    Swipe the editing panel left or right to change categories.
+  </p>
+</section>
+
+<section class="editor">
+
+  <div class="tabs" id="tabs">
+    <button data-page="character" class="active">Character</button>
+    <button data-page="body">Body</button>
+    <button data-page="head">Head</button>
+    <button data-page="face">Face</button>
+    <button data-page="hair">Hair</button>
+    <button data-page="clothes">Clothes</button>
+    <button data-page="colours">Colours</button>
+    <button data-page="poses">Poses</button>
+    <button data-page="background">Background</button>
+    <button data-page="library">Library</button>
+  </div>
+
+  <div class="editor-content" id="editorContent">
+
+    <div class="page active" id="page-character">
+      <h3>✦ Character</h3>
+      <label>Name</label>
+      <input type="text" id="name" value="New Character">
+      <p class="hint">
+        Every character starts from the same adjustable,
+        gender-neutral base.
+      </p>
+    </div>
+
+    <div class="page" id="page-body">
+      <h3>✦ Body Proportions</h3>
+      <div id="bodyControls"></div>
+      <button onclick="resetGroup('body')">Reset Body</button>
+    </div>
+
+    <div class="page" id="page-head">
+      <h3>✦ Head Shape</h3>
+      <div id="headControls"></div>
+      <button onclick="resetGroup('head')">Reset Head</button>
+    </div>
+
+    <div class="page" id="page-face">
+      <h3>✦ Face</h3>
+      <div id="faceControls"></div>
+      <div class="colors">
+        <div class="color-box">
+          <label>Eye Colour</label>
+          <input type="color" id="eyeColor">
+        </div>
+        <div class="color-box">
+          <label>Skin Colour</label>
+          <input type="color" id="skinColor">
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-hair">
+      <h3>✦ Hair</h3>
+      <div class="colors">
+        <div class="color-box">
+          <label>Front Hair</label>
+          <input type="color" id="frontHairColor">
+        </div>
+        <div class="color-box">
+          <label>Back Hair</label>
+          <input type="color" id="backHairColor">
+        </div>
+      </div>
+      <p class="hint">
+        Hairstyle selection and individual hair-piece
+        adjustments will be added with the illustrated assets.
+      </p>
+    </div>
+
+    <div class="page" id="page-clothes">
+      <h3>✦ Clothing</h3>
+      <div class="colors" id="clothingColours"></div>
+      <p class="hint">
+        Left and right sleeves have independent colours.
+        Interchangeable clothing shapes are a future expansion.
+      </p>
+    </div>
+
+    <div class="page" id="page-colours">
+      <h3>✦ Colour Studio</h3>
+
+      <label>Selected Colour</label>
+      <input type="color" id="selectedColour">
+
+      <label>HEX</label>
+      <input type="text" id="hexInput" value="#ffffff">
+
+      <div class="actions">
+        <button onclick="applyHex()">Apply HEX</button>
+        <button onclick="savePaletteColour()">Save Colour</button>
+      </div>
+
+      <h4>Saved Colours</h4>
+      <div class="swatches" id="savedPalette"></div>
+
+      <p class="hint">
+        Tap the character to pick a colour.
+        Saved colours can be reused across characters.
+      </p>
+    </div>
+
+    <div class="page" id="page-poses">
+      <h3>✦ Poses</h3>
+
+      <div class="actions">
+        <button onclick="setPose('stand')">Stand</button>
+        <button onclick="setPose('wave')">Wave</button>
+        <button onclick="setPose('cheer')">Cheer</button>
+      </div>
+
+      <div id="poseControls"></div>
+    </div>
+
+    <div class="page" id="page-background">
+      <h3>✦ Background</h3>
+
+      <label>Colour</label>
+      <input type="color" id="backgroundColor">
+
+      <label>Style</label>
+      <select id="backgroundStyle">
+        <option value="gradient">Gradient</option>
+        <option value="solid">Solid</option>
+      </select>
+    </div>
+
+    <div class="page" id="page-library">
+      <h3>✦ Character Library</h3>
+
+      <select id="slots"></select>
+
+      <div class="actions">
+        <button onclick="loadSlot()">Load</button>
+        <button onclick="saveSlot()">Save</button>
+        <button onclick="deleteSlot()">Delete</button>
+      </div>
+
+      <h3>✦ Import / Export</h3>
+
+      <textarea id="characterCode"
+        placeholder="Character code"></textarea>
+
+      <div class="actions">
+        <button onclick="exportCode()">Export</button>
+        <button onclick="copyCode()">Copy</button>
+        <button onclick="importCode()">Import</button>
+      </div>
+
+      <p class="hint">
+        Characters are saved in this browser.
+        Export codes provide a portable backup.
+        Online accounts are not included yet.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="changePage(-1)">← Previous</button>
+    <button onclick="changePage(1)">Next →</button>
+  </div>
+
+</section>
+</div>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const pages = [
+  "character","body","head","face","hair",
+  "clothes","colours","poses","background","library"
+];
+
+let pageIndex = 0;
+
+const defaults = {
+  name:"New Character",
+
+  shoulder:100,
+  chest:100,
+  waist:100,
+  hips:100,
+  torso:100,
+  armLength:100,
+  legLength:100,
+  handSize:100,
+
+  headSize:100,
+  faceWidth:100,
+  faceLength:100,
+  jawWidth:100,
+  jawDepth:100,
+  chinRoundness:50,
+
+  eyeSize:100,
+  eyeSpacing:100,
+
+  leftArm:0,
+  rightArm:0,
+
+  frontHairColor:"#ffffff",
+  backHairColor:"#ffffff",
+  eyeColor:"#8b6cbd",
+  skinColor:"#f0c9b4",
+
+  topColor:"#ffffff",
+  leftSleeveColor:"#ffffff",
+  rightSleeveColor:"#ffffff",
+  pantsColor:"#ffffff",
+  shoeColor:"#eeeeee",
+
+  backgroundColor:"#655083",
+  backgroundStyle:"gradient"
+};
+
+let state = {...defaults};
+
+const groups = {
+  body:[
+    ["shoulder","Shoulder Width",60,150],
+    ["chest","Chest Shape",60,150],
+    ["waist","Waist Width",60,150],
+    ["hips","Hip Width",60,150],
+    ["torso","Torso Length",70,140],
+    ["armLength","Arm Length",70,140],
+    ["legLength","Leg Length",70,140],
+    ["handSize","Hand Size",60,150]
+  ],
+  head:[
+    ["headSize","Head Size",70,140],
+    ["faceWidth","Face Width",70,140],
+    ["faceLength","Face Length",70,140],
+    ["jawWidth","Jaw Width",60,150],
+    ["jawDepth","Jaw Depth",60,150],
+    ["chinRoundness","Chin Roundness",0,100]
+  ],
+  face:[
+    ["eyeSize","Eye Size",60,150],
+    ["eyeSpacing","Eye Spacing",60,150]
+  ],
+  poses:[
+    ["leftArm","Left Arm Rotation",-100,100],
+    ["rightArm","Right Arm Rotation",-100,100]
+  ]
+};
+
+const colourFields = [
+  ["topColor","Top"],
+  ["leftSleeveColor","Left Sleeve"],
+  ["rightSleeveColor","Right Sleeve"],
+  ["pantsColor","Trousers"],
+  ["shoeColor","Shoes"]
+];
+
+function clamp(value,min,max){
+  return Math.min(max,Math.max(min,value));
+}
+
+function validHex(value){
+  return /^#[0-9a-f]{6}$/i.test(value);
+}
+
+function sanitize(data){
+  const clean = {...defaults};
+
+  if(!data || typeof data!=="object") return clean;
+
+  for(const key of Object.keys(defaults)){
+    const original = defaults[key];
+    const value = data[key];
+
+    if(typeof original==="number"){
+      if(typeof value==="number" && Number.isFinite(value)){
+        clean[key]=clamp(value,-200,300);
+      }
+    }else if(key.endsWith("Color")){
+      if(typeof value==="string" && validHex(value)){
+        clean[key]=value;
+      }
+    }else if(key==="name"){
+      if(typeof value==="string"){
+        clean[key]=value.slice(0,80);
+      }
+    }else if(key==="backgroundStyle"){
+      if(value==="solid" || value==="gradient"){
+        clean[key]=value;
+      }
+    }
+  }
+  return clean;
+}
+
+function buildControls(){
+  for(const [group,items] of Object.entries(groups)){
+    const target = $(group==="poses"
+      ? "poseControls"
+      : group+"Controls");
+
+    items.forEach(([key,label,min,max])=>{
+      const div=document.createElement("div");
+      div.className="control";
+
+      const title=document.createElement("label");
+      const name=document.createElement("span");
+      const output=document.createElement("span");
+
+      name.textContent=label;
+      output.id="value-"+key;
+
+      title.append(name,output);
+
+      const slider=document.createElement("input");
+      slider.type="range";
+      slider.min=min;
+      slider.max=max;
+      slider.id="slider-"+key;
+
+      slider.addEventListener("input",()=>{
+        state[key]=Number(slider.value);
+        render();
+      });
+
+      div.append(title,slider);
+      target.appendChild(div);
+    });
+  }
+
+  colourFields.forEach(([key,label])=>{
+    const box=document.createElement("div");
+    box.className="color-box";
+
+    const text=document.createElement("label");
+    text.textContent=label;
+
+    const input=document.createElement("input");
+    input.type="color";
+    input.id=key;
+
+    input.addEventListener("input",()=>{
+      state[key]=input.value;
+      render();
+    });
+
+    box.append(text,input);
+    $("clothingColours").appendChild(box);
+  });
+}
+
+function syncControls(){
+  for(const items of Object.values(groups)){
+    for(const [key] of items){
+      const slider=$("slider-"+key);
+      if(slider)slider.value=state[key];
+
+      const output=$("value-"+key);
+      if(output)output.textContent=state[key];
+    }
+  }
+
+  $("name").value=state.name;
+
+  const colours=[
+    "frontHairColor","backHairColor",
+    "eyeColor","skinColor",
+    ...colourFields.map(x=>x[0]),
+    "backgroundColor"
+  ];
+
+  colours.forEach(key=>{
+    if($(key))$(key).value=state[key];
+  });
+
+  $("backgroundStyle").value=state.backgroundStyle;
+}
+
+function svgElement(tag,attributes,parent){
+  const el=document.createElementNS(
+    "http://www.w3.org/2000/svg",tag
+  );
+
+  for(const [key,value] of Object.entries(attributes)){
+    el.setAttribute(key,value);
+  }
+
+  parent.appendChild(el);
+  return el;
+}
+
+function drawPath(parent,d,fill,stroke="#493b44",width=3){
+  return svgElement("path",{
+    d,fill,stroke,"stroke-width":width,
+    "stroke-linejoin":"round"
+  },parent);
+}
+
+function drawBody(){
+  const body=$("bodyLayer");
+  body.replaceChildren();
+
+  const s=state;
+
+  const shoulder=55*s.shoulder/100;
+  const chest=45*s.chest/100;
+  const waist=36*s.waist/100;
+  const hips=44*s.hips/100;
+
+  const torsoEnd=365+(s.torso-100)*0.6;
+  const legEnd=570+(s.legLength-100)*1.1;
+
+  const armEnd=375+(s.armLength-100)*0.8;
+  const handEnd=armEnd+35*s.handSize/100;
+
+  const leftShoulder=200-shoulder;
+  const rightShoulder=200+shoulder;
+
+  const skin=s.skinColor;
+
+  // Legs
+  const leftLeg=drawPath(body,
+    `M ${200-hips} ${torsoEnd}
+     L 195 ${torsoEnd}
+     L 190 ${legEnd}
+     L 145 ${legEnd}
+     Z`,
+    s.pantsColor
+  );
+
+  const rightLeg=drawPath(body,
+    `M 205 ${torsoEnd}
+     L ${200+hips} ${torsoEnd}
+     L 255 ${legEnd}
+     L 210 ${legEnd}
+     Z`,
+    s.pantsColor
+  );
+
+  // Shoes
+  drawPath(body,
+    `M 145 ${legEnd-5}
+     L 190 ${legEnd-5}
+     L 195 ${legEnd+25}
+     L 130 ${legEnd+25} Z`,
+    s.shoeColor
+  );
+
+  drawPath(body,
+    `M 210 ${legEnd-5}
+     L 255 ${legEnd-5}
+     L 270 ${legEnd+25}
+     L 205 ${legEnd+25} Z`,
+    s.shoeColor
+  );
+
+  function arm(side,rotation,colour){
+    const direction=side==="left"?-1:1;
+    const x=200+direction*shoulder;
+    const outer=x+direction*38;
+    const inner=x+direction*12;
+
+    const group=svgElement("g",{
+      transform:`rotate(${rotation} ${x} 267)`
+    },body);
+
+    drawPath(group,
+      `M ${x} 267
+       L ${outer} 282
+       L ${outer+direction*7} ${armEnd-65}
+       L ${inner} ${armEnd-60}
+       Z`,
+      colour
+    );
+
+    drawPath(group,
+      `M ${outer+direction*7} ${armEnd-65}
+       L ${inner} ${armEnd-60}
+       L ${inner+direction*2} ${armEnd}
+       L ${outer} ${armEnd}
+       Z`,
+      skin
+    );
+
+    drawPath(group,
+      `M ${inner+direction*2} ${armEnd}
+       L ${outer} ${armEnd}
+       L ${outer+direction*3} ${handEnd}
+       L ${inner+direction*4} ${handEnd}
+       Z`,
+      skin
+    );
+  }
+
+  arm("left",s.leftArm,s.leftSleeveColor);
+  arm("right",s.rightArm,s.rightSleeveColor);
+
+  // Torso
+  drawPath(body,
+    `M ${leftShoulder} 260
+     Q ${200-chest} 290 ${200-waist} 330
+     L ${200-hips} ${torsoEnd}
+     L ${200+hips} ${torsoEnd}
+     Q ${200+waist} 330 ${200+chest} 290
+     L ${rightShoulder} 260
+     Q 200 250 ${leftShoulder} 260 Z`,
+    s.topColor
+  );
+
+  // Neck
+  drawPath(body,
+    `M 180 230 L 220 230
+     L 220 270 Q 200 283 180 270 Z`,
+    skin
+  );
+
+  // Neckline
+  drawPath(body,
+    "M 180 260 Q 200 286 220 260",
+    "none","#8d8291",2
+  );
+
+  leftLeg.dataset.colourKey="pantsColor";
+  rightLeg.dataset.colourKey="pantsColor";
+}
+
+function drawFace(){
+  const s=state;
+
+  const width=65*s.faceWidth/100;
+  const length=110*s.faceLength/100;
+  const jaw=45*s.jawWidth/100;
+
+  const depth=(s.jawDepth-100)*0.25;
+  const round=s.chinRoundness/100;
+
+  const chinY=130+length+depth;
+  const chinHalf=5+round*28;
+
+  const d=`
+    M ${200-width} 120
+    Q 200 55 ${200+width} 120
+    L ${200+jaw} 200
+    Q ${200+jaw} ${chinY-25}
+      ${200+chinHalf} ${chinY}
+    Q 200 ${chinY+round*12}
+      ${200-chinHalf} ${chinY}
+    Q ${200-jaw} ${chinY-25}
+      ${200-jaw} 200
+    Z
+  `;
+
+  $("faceShape").setAttribute("d",d);
+  $("faceShape").setAttribute("fill",s.skinColor);
+
+  const scale=s.headSize/100;
+
+  $("headGroup").setAttribute(
+    "transform",
+    `translate(${200*(1-scale)} ${230*(1-scale)})
+     scale(${scale})`
+  );
+
+  const eyeScale=s.eyeSize/100;
+  const spacing=(s.eyeSpacing-100)*0.3;
+
+  $("faceDetails").setAttribute(
+    "transform",
+    `translate(${spacing} 0) scale(${eyeScale} 1)`
+  );
+
+  document.querySelectorAll(".iris").forEach(el=>{
+    el.setAttribute("fill",s.eyeColor);
+  });
+
+  $("frontHair").setAttribute("fill",s.frontHairColor);
+  $("backHair").setAttribute("fill",s.backHairColor);
+}
+
+function render(){
+  $("displayName").textContent=state.name||"New Character";
+
+  drawBody();
+  drawFace();
+
+  const bg=state.backgroundColor;
+
+  $("stage").style.background=
+    state.backgroundStyle==="solid"
+    ?bg
+    :`linear-gradient(${bg},#191321)`;
+
+  for(const items of Object.values(groups)){
+    for(const [key] of items){
+      const output=$("value-"+key);
+      if(output)output.textContent=state[key];
+    }
+  }
+
+  try{
+    localStorage.setItem(
+      "animeStudioCurrentV2",
+      JSON.stringify(state)
+    );
+  }catch(e){
+    console.warn("Autosave unavailable",e);
+  }
+}
+
+function showPage(index){
+  pageIndex=(index+pages.length)%pages.length;
+
+  document.querySelectorAll(".page").forEach(el=>{
+    el.classList.remove("active");
+  });
+
+  document.querySelectorAll(".tabs button").forEach(el=>{
+    el.classList.remove("active");
+  });
+
+  $("page-"+pages[pageIndex]).classList.add("active");
+
+  const button=document.querySelector(
+    `[data-page="${pages[pageIndex]}"]`
+  );
+
+  button.classList.add("active");
+  button.scrollIntoView({
+    behavior:"smooth",
+    block:"nearest",
+    inline:"center"
+  });
+}
+
+function changePage(direction){
+  showPage(pageIndex+direction);
+}
+
+document.querySelectorAll(".tabs button").forEach(button=>{
+  button.addEventListener("click",()=>{
+    showPage(pages.indexOf(button.dataset.page));
+  });
+});
+
+let touchStartX=0;
+let touchStartY=0;
+
+$("editorContent").addEventListener("touchstart",e=>{
+  if(e.target.closest("input,textarea,select,button"))return;
+
+  touchStartX=e.touches[0].clientX;
+  touchStartY=e.touches[0].clientY;
+},{passive:true});
+
+$("editorContent").addEventListener("touchend",e=>{
+  if(!touchStartX)return;
+
+  const dx=e.changedTouches[0].clientX-touchStartX;
+  const dy=e.changedTouches[0].clientY-touchStartY;
+
+  if(Math.abs(dx)>65 && Math.abs(dx)>Math.abs(dy)*1.4){
+    changePage(dx<0?1:-1);
+  }
+
+  touchStartX=0;
+},{passive:true});
+
+function resetGroup(group){
+  for(const [key] of groups[group]){
+    state[key]=defaults[key];
+  }
+  syncControls();
+  render();
+}
+
+function setPose(pose){
+  if(pose==="stand"){
+    state.leftArm=0;
+    state.rightArm=0;
+  }
+  if(pose==="wave"){
+    state.leftArm=0;
+    state.rightArm=-90;
+  }
+  if(pose==="cheer"){
+    state.leftArm=90;
+    state.rightArm=-90;
+  }
+  syncControls();
+  render();
+}
+
+function readJSON(key,fallback){
+  try{
+    return JSON.parse(localStorage.getItem(key))??fallback;
+  }catch{
+    return fallback;
+  }
+}
+
+function getSlots(){
+  return readJSON("animeStudioSlotsV2",{});
+}
+
+function refreshSlots(){
+  const slots=getSlots();
+  $("slots").replaceChildren();
+
+  Object.keys(slots).forEach(name=>{
+    const option=document.createElement("option");
+    option.value=name;
+    option.textContent=name;
+    $("slots").appendChild(option);
+  });
+}
+
+function saveSlot(){
+  const slots=getSlots();
+  const name=state.name.trim()||"Unnamed Character";
+
+  slots[name]={...state,name};
+
+  try{
+    localStorage.setItem(
+      "animeStudioSlotsV2",
+      JSON.stringify(slots)
+    );
+    refreshSlots();
+    $("slots").value=name;
+    alert("Character saved!");
+  }catch{
+    alert("Unable to save. Try exporting your character code.");
+  }
+}
+
+function loadSlot(){
+  const slots=getSlots();
+  const name=$("slots").value;
+
+  if(!slots[name])return;
+
+  state=sanitize(slots[name]);
+  syncControls();
+  render();
+}
+
+function deleteSlot(){
+  const name=$("slots").value;
+  if(!name)return;
+
+  if(!confirm("Delete this character?"))return;
+
+  const slots=getSlots();
+  delete slots[name];
+
+  localStorage.setItem(
+    "animeStudioSlotsV2",
+    JSON.stringify(slots)
+  );
+
+  refreshSlots();
+}
+
+function newCharacter(){
+  if(!confirm("Start a new character? Save your current design first.")){
+    return;
+  }
+
+  state={...defaults};
+  syncControls();
+  render();
+  showPage(0);
+}
+
+function exportCode(){
+  const payload={
+    app:"AnimeStudio",
+    version:2,
+    character:state
+  };
+
+  const json=JSON.stringify(payload);
+  const bytes=new TextEncoder().encode(json);
+
+  let binary="";
+  bytes.forEach(byte=>{
+    binary+=String.fromCharCode(byte);
+  });
+
+  $("characterCode").value=btoa(binary);
+  showPage(pages.indexOf("library"));
+}
+
+function importCode(){
+  try{
+    const code=$("characterCode").value.trim();
+    const binary=atob(code);
+
+    const bytes=Uint8Array.from(
+      binary,
+      character=>character.charCodeAt(0)
+    );
+
+    const json=new TextDecoder().decode(bytes);
+    const payload=JSON.parse(json);
+
+    if(
+      payload.app!=="AnimeStudio" ||
+      payload.version!==2 ||
+      !payload.character
+    ){
+      throw new Error("Unsupported code");
+    }
+
+    state=sanitize(payload.character);
+    syncControls();
+    render();
+
+    alert("Character imported!");
+  }catch{
+    alert("Invalid or unsupported character code.");
+  }
+}
+
+async function copyCode(){
+  if(!$("characterCode").value)exportCode();
+
+  try{
+    await navigator.clipboard.writeText(
+      $("characterCode").value
+    );
+    alert("Code copied!");
+  }catch{
+    $("characterCode").select();
+    alert("Select the code and copy it manually.");
+  }
+}
+
+function getPalette(){
+  return readJSON("animeStudioPaletteV2",[]);
+}
+
+function savePaletteColour(){
+  const colour=$("selectedColour").value;
+  const palette=getPalette();
+
+  if(!palette.includes(colour)){
+    palette.push(colour);
+  }
+
+  localStorage.setItem(
+    "animeStudioPaletteV2",
+    JSON.stringify(palette)
+  );
+
+  renderPalette();
+}
+
+function renderPalette(){
+  $("savedPalette").replaceChildren();
+
+  getPalette().forEach(colour=>{
+    const button=document.createElement("button");
+    button.className="swatch";
+    button.style.background=colour;
+    button.title=colour;
+
+    button.onclick=()=>{
+      $("selectedColour").value=colour;
+      $("hexInput").value=colour;
+    };
+
+    $("savedPalette").appendChild(button);
+  });
+}
+
+function applyHex(){
+  const hex=$("hexInput").value.trim();
+
+  if(!validHex(hex)){
+    alert("Use a six-digit HEX colour, such as #FF88CC.");
+    return;
+  }
+
+  $("selectedColour").value=hex;
+}
+
+$("selectedColour").addEventListener("input",()=>{
+  $("hexInput").value=$("selectedColour").value;
+});
+
+$("name").addEventListener("input",()=>{
+  state.name=$("name").value;
+  render();
+});
+
+[
+  "frontHairColor","backHairColor",
+  "eyeColor","skinColor","backgroundColor"
+].forEach(key=>{
+  $(key).addEventListener("input",()=>{
+    state[key]=$(key).value;
+    render();
+  });
+});
+
+$("backgroundStyle").addEventListener("change",()=>{
+  state.backgroundStyle=$("backgroundStyle").value;
+  render();
+});
+
+// Eyedropper for rendered SVG colours.
+$("character").addEventListener("click",event=>{
+  const element=event.target;
+  const fill=element.getAttribute("fill");
+
+  if(fill && validHex(fill)){
+    $("selectedColour").value=fill;
+    $("hexInput").value=fill;
+  }
+});
+
+buildControls();
+
+state=sanitize(
+  readJSON("animeStudioCurrentV2",defaults)
+);
+
+syncControls();
+render();
+refreshSlots();
+renderPalette();
+showPage(0);
+</script>
+
+</body>
+</html>
